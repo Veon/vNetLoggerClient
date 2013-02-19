@@ -7,17 +7,15 @@ use threads;
 use Config::YAML;
 use YAML::Tiny;
 use Data::Dumper;
-use FindBin;
 
-use lib "$FindBin::Bin/../lib";
-
-use Main;
+$pidfile = "/var/run/NetClient.pid";
 
 Daemon::Daemonize->daemonize;
+write_pidfile( $pidfile );
 my ($socket,$client_socket);
 my @threads; #threads array
 
-$config = YAML::Tiny->read('/etc/vnetlogger_client/logs.yml');
+$config = YAML::Tiny->read('/home/oboyshikov/Scripts/client/config.yml');
 
 #my $threads = scalar( keys $config->[0]); #max threads count
 

@@ -1,5 +1,6 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 package Main;
 
 1;
+
