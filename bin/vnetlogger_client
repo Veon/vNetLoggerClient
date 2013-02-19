@@ -1,0 +1,53 @@
+#!/usr/bin/perl
+
+use Daemon::Daemonize qw/ :all /;
+use IO::Socket::INET;
+use File::Tail;
+use threads;
+use Config::YAML;
+use YAML::Tiny;
+use Data::Dumper;
+
+Daemon::Daemonize->daemonize;
+my ($socket,$client_socket);
+my @threads; #threads array
+
+$config = YAML::Tiny->read('/home/oboyshikov/Scripts/client/config.yml');
+
+#my $threads = scalar( keys $config->[0]); #max threads count
+
+#function lor tail logs in threads
+sub read_log
+{
+$socket = new IO::Socket::INET (
+PeerHost => '92.241.184.228',
+PeerPort => '9999',
+Proto => 'udp',
+        ) or die "ERROR in Socket Creation : $!\n";
+
+my $log_data1 = shift;
+
+($name, $local_path, $remote_path) = split(/::/, $log_data1);
+print $remote_path;
+my $file=File::Tail->new(name=>"$local_path/$name", maxinterval=>0.1);
+
+	while (defined($line=$file->read)) {
+		$send_text = $name . ":" . $remote_path . ":" . $line;
+		print $send_text;
+		$socket->send($send_text);
+	}
+}
+
+foreach $key ( keys $config->[0] ) {
+	$log_data = "$config->[0]->{$key}->{'name'}::$config->[0]->{$key}->{'local_path'}::$config->[0]->{$key}->{'remote_path'}";
+	
+	my $t = threads->new(\&read_log, $log_data);
+        push @threads, $t;
+}
+
+foreach(threads->list){
+	$_->join();
+}
+
+
+$socket->close();
