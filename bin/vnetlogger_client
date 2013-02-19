@@ -7,6 +7,11 @@ use threads;
 use Config::YAML;
 use YAML::Tiny;
 use Data::Dumper;
+use FindBin;
+
+use lib "$FindBin::Bin/../lib";
+
+use Main;
 
 Daemon::Daemonize->daemonize;
 my ($socket,$client_socket);
