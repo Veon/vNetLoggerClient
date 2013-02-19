@@ -20,8 +20,8 @@
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="LiteHostingNG"
-NAME=NetClient
-DAEMON=/home/oboyshikov/Scripts/client/$NAME
+NAME=vnetlogger_client
+DAEMON=/usr/local/$NAME/bin/$NAME
 DAEMON_ARGS=""
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME

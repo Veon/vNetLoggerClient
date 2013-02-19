@@ -12,7 +12,7 @@ Daemon::Daemonize->daemonize;
 my ($socket,$client_socket);
 my @threads; #threads array
 
-$config = YAML::Tiny->read('/home/oboyshikov/Scripts/client/config.yml');
+$config = YAML::Tiny->read('/etc/vnetlogger_client/logs.yml');
 
 #my $threads = scalar( keys $config->[0]); #max threads count
 
