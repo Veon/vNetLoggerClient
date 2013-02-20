@@ -10,7 +10,14 @@ our @EXPORT=qw($config $sysconfig);
 
 my $debug_file = "/var/log/netclient.log";
 my $logger = new Logger::Logger ( $debug_file, 1 ) or die "Can't create object: Logger::Logger::Error";
-#read logs configuration
+
+if ( ! -f "/etc/netclient/logs.yml" or 
+	! -f "/etc/netclient/config.yml" ) {
+	print STDERR, "Can't load configuration files!";
+	$logger->debug_message("Can't load configuration files!");
+	exit 1;
+}
+
 our $config = YAML::Tiny->read("/etc/netclient/logs.yml");
 our $sysconfig = YAML::Tiny->read("/etc/netclient/config.yml");
 
