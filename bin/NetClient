@@ -35,16 +35,16 @@ write_pidfile( $pidfile );
 #function lor tail logs in threads
 sub send_read_log
 {
+my $log_data1 = shift;
+
+($name, $local_path, $server, $remote_path) = split(/::/, $log_data1);
 
 $socket = new IO::Socket::INET (
-PeerHost => '92.241.184.228',
+PeerHost => $server,
 PeerPort => '9999',
 Proto => 'udp',
         ) or die "ERROR in Socket Creation : $!\n";
 
-my $log_data1 = shift;
-
-($name, $local_path, $remote_path) = split(/::/, $log_data1);
 
 my $file=File::Tail->new(name=>"$local_path/$name", maxinterval=>0.1);
 
@@ -59,7 +59,7 @@ my $file=File::Tail->new(name=>"$local_path/$name", maxinterval=>0.1);
 
 foreach $key ( keys $config->[0] ) {
 
-	$log_data = "$config->[0]->{$key}->{'name'}::$config->[0]->{$key}->{'local_path'}::$config->[0]->{$key}->{'remote_path'}";
+	$log_data = "$config->[0]->{$key}->{'name'}::$config->[0]->{$key}->{'local_path'}::$config->[0]->{$key}->{'server'}::$config->[0]->{$key}->{'remote_path'}";
 
 	my $t = threads->new(\&send_read_log, $log_data);
         push @threads, $t;
