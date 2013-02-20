@@ -8,12 +8,24 @@ use Config::YAML;
 use YAML::Tiny;
 use Data::Dumper;
 use Logger::Logger;
+use FindBin;
+
+use lib "$FindBin::Bin/../lib";
+
+use Main;
 
 my $debug_file = "/var/log/netclient.log";
 my $logger = new Logger::Logger ( $debug_file, 1 ) or die "Can't create object: Logger::Logger::Error";
 my $pidfile = "/var/run/NetClient.pid";
 my ($socket,$client_socket);
 my @threads; #threads array
+
+if ( Main::start_proc() eq 0 ) {
+	$logger->debug_message("StartUP process result: " . Main::start_proc());
+	exit 1;
+}
+
+$logger->debug_message("StartUP process result: " . Main::start_proc());
 
 Daemon::Daemonize->daemonize;
 write_pidfile( $pidfile );
@@ -48,12 +60,6 @@ my $file=File::Tail->new(name=>"$local_path/$name", maxinterval=>0.1);
 }
 
 foreach $key ( keys $config->[0] ) {
-
-	if ( ! -f "$config->[0]->{$key}->{'local_path'}/$config->[0]->{$key}->{'name'}" ) {
-		$logger->debug_message("Log file $config->[0]->{$key}->{'local_path'}/$config->[0]->{$key}->{'name'} does not exists!");
-		print STDERR "Log file $config->[0]->{$key}->{'local_path'}/$config->[0]->{$key}->{'name'} does not exists!";
-		exit 1;
-	}
 
 	$log_data = "$config->[0]->{$key}->{'name'}::$config->[0]->{$key}->{'local_path'}::$config->[0]->{$key}->{'remote_path'}";
 
