@@ -30,14 +30,12 @@ $logger->debug_message("StartUP process result: " . Main::start_proc());
 Daemon::Daemonize->daemonize;
 write_pidfile( $pidfile );
 
-$sysconfig = YAML::Tiny->read('/etc/netclient/config.yml');
-$config = YAML::Tiny->read('/etc/netclient/logs.yml');
-
 #my $threads = scalar( keys $config->[0]); #max threads count
 
 #function lor tail logs in threads
 sub send_read_log
 {
+
 $socket = new IO::Socket::INET (
 PeerHost => '92.241.184.228',
 PeerPort => '9999',
