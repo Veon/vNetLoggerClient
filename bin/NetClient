@@ -58,16 +58,44 @@ my $file=File::Tail->new(name=>"$local_path/$name", maxinterval=>0.1);
 }
 
 foreach $key ( keys $config->[0] ) {
+	if ( $config->[0]->{$key}->{'name'} =~ m/\*/ ) {
+		@files_array = glob "$config->[0]->{$key}->{'local_path'}/$config->[0]->{$key}->{'name'}";
+		foreach $full_file_name ( @files_array ) {
+			@tmp_name = split("/",$full_file_name);
+			$file_name = @tmp_name[q/-1/];
+			$log_data = $file_name . "::$config->[0]->{$key}->{'local_path'}::
+				$config->[0]->{$key}->{'server'}::
+				$config->[0]->{$key}->{'remote_path'}";
 
-	$log_data = "$config->[0]->{$key}->{'name'}::$config->[0]->{$key}->{'local_path'}::$config->[0]->{$key}->{'server'}::$config->[0]->{$key}->{'remote_path'}";
+			my $t = threads->new(\&send_read_log, $log_data);
+		        push @threads, $t;
+		        $thread_id = $t->tid;
+
+			if ( $sysconfig->[0]->{'debug'} eq 1 ) {
+         			$logger->debug_message("Start logging $full_file_name to 
+					$config->[0]->{$key}->{'server'}::
+					$config->[0]->{$key}->{'remote_path'} with thread_id $thread_id");
+		        }
+		}
+	} else {
+
+	$log_data = "$config->[0]->{$key}->{'name'}::
+			$config->[0]->{$key}->{'local_path'}::
+			$config->[0]->{$key}->{'server'}::
+			$config->[0]->{$key}->{'remote_path'}";
 
 	my $t = threads->new(\&send_read_log, $log_data);
         push @threads, $t;
 	$thread_id = $t->tid;
 
 	if ( $sysconfig->[0]->{'debug'} eq 1 ) {
-                $logger->debug_message("Start logging $config->[0]->{$key}->{'local_path'}/$config->[0]->{$key}->{'name'} to $config->[0]->{$key}->{'server'}::$config->[0]->{$key}->{'remote_path'} with thread_id $thread_id");
+				$logger->debug_message("Start logging $config->[0]->{$key}->{'local_path'}/
+					$config->[0]->{$key}->{'name'} to
+					$config->[0]->{$key}->{'server'}::
+					$config->[0]->{$key}->{'remote_path'} with thread_id $thread_id");
         }
+
+	}
 
 }
 
@@ -77,4 +105,3 @@ foreach(threads->list){
 
 
 $socket->close();
-
