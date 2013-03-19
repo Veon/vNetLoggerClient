@@ -4,7 +4,6 @@ use Daemon::Daemonize qw/ :all /;
 use IO::Socket::INET;
 use File::Tail;
 use threads;
-use Config::YAML;
 use YAML::Tiny;
 use Data::Dumper;
 use Logger::Logger;
@@ -14,12 +13,12 @@ use lib "$FindBin::Bin/../lib";
 
 use Main;
 
-my $debug_file = "/var/log/netclient.log";
-my $logger = new Logger::Logger ( $debug_file, 1 ) or die "Can't create object: Logger::Logger::Error";
+
 my $pidfile = "/var/run/NetClient.pid";
 my ($socket,$client_socket);
 my @threads; #threads array
 
+#TODO
 if ( Main::start_proc() eq 0 ) {
 	$logger->debug_message("StartUP process result: " . Main::start_proc());
 	exit 1;
@@ -32,39 +31,12 @@ write_pidfile( $pidfile );
 
 #my $threads = scalar( keys $config->[0]); #max threads count
 
-#function lor tail logs in threads
-sub send_read_log
-{
-my $log_data1 = shift;
-
-($name, $local_path, $server, $remote_path) = split(/::/, $log_data1);
-
-$socket = new IO::Socket::INET (
-PeerHost => $server,
-PeerPort => '9999',
-Proto => 'udp',
-        ) or die "ERROR in Socket Creation : $!\n";
-
-
-my $file=File::Tail->new(name=>"$local_path/$name", maxinterval=>0.1);
-
-	while (defined($line=$file->read)) {
-		$send_text = $name . ":" . $remote_path . ":" . $line;
-		$socket->send($send_text);
-		if ( $sysconfig->[0]->{'debug'} eq 1 ) {
-			$logger->debug_message("Send data: $line");
-		}
-	}
-
-}
-
-@logs = Main::get_logs_from_config();
+@logs = get_logs_from_config();
 
 for ($i =$[; $i <= $#logs; $i++)
 {
         $t = threads->new(\&send_read_log, $logs[$i]);
         push @threads, $t;
-        $thread_id = $t->tid;
 }
 
 foreach(threads->list) {

@@ -1,0 +1,15 @@
+log1:
+    file: data.txt
+    local_path: /var/log
+    server: SERVER_NAME_OR_IP
+    remote_path: /var/log
+log2:
+    file: data2.txt
+    local_path: /var/log
+    server: SERVER_NAME_OR_IP
+    remote_path: /var/log/servers_logs
+log3:
+    parrent: *.log
+    local_path: /var/log
+    server: SERVER_NAME_OR_IP
+    remote_path: /home/logs/servers_logs
