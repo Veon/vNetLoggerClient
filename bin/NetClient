@@ -56,7 +56,7 @@ foreach $key ( keys $config->[0] ) {
                 closedir(CONFDIR);
 
         } else {
-		#TODO
+		next;
 	}
 }
 
