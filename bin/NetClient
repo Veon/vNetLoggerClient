@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w 
 
 use Daemon::Daemonize qw/ :all /;
 use IO::Socket::INET;
@@ -12,7 +12,6 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 
 use Main;
-
 
 my $pidfile = "/var/run/NetClient.pid";
 my ($socket,$client_socket);
@@ -29,16 +28,39 @@ $logger->debug_message("StartUP process result: " . Main::start_proc());
 Daemon::Daemonize->daemonize;
 write_pidfile( $pidfile );
 
-#my $threads = scalar( keys $config->[0]); #max threads count
+foreach $key ( keys $config->[0] ) {
 
-@logs = get_logs_from_config();
+#проверяем что указано как целевой файл
+#может быть @file  - обычный текстовый файл 
+#или @parrent - регулярное выражение
+        #если был указан file
+        if ( exists($config->[0]->{$key}->{'file'}) ) {
+                #если файл найден на диске
+                if ( -f "$config->[0]->{$key}->{'local_path'}/$config->[0]->{$key}->{'file'}" ) {
+                        $t = threads->new(\&Main::send_read_log,"$config->[0]->{$key}->{'file'}::$config->[0]->{$key}->{'local_path'}::$config->[0]->{$key}->{'server'}::$config->[0]->{$key}->{'remote_path'}");
+			$logger->debug_message("$config->[0]->{$key}->{'file'}::$config->[0]->{$key}->{'local_path'}::$config->[0]->{$key}->{'server'}::$config->[0]->{$key}->{'remote_path'}");
+			push @threads, $t;
+                }
+        #если используется регулярка (parrent)
+        } elsif ( exists($config->[0]->{$key}->{'parrent'}) ) {
+                opendir CONFDIR, "$config->[0]->{$key}->{'local_path'}";
+                $parrent = "$config->[0]->{$key}->{'parrent'}";
+                @files_array = grep /$parrent/, readdir CONFDIR;
+                foreach $full_file_name ( @files_array ) {
+                        @tmp_name = split("/",$full_file_name);
+                        $file_name = @tmp_name[q/-1/];
+                        $t = threads->new(\&Main::send_read_log,$file_name . "::$config->[0]->{$key}->{'local_path'}::$config->[0]->{$key}->{'server'}::$config->[0]->{$key}->{'remote_path'}");
+			$logger->debug_message($file_name . "::$config->[0]->{$key}->{'local_path'}::$config->[0]->{$key}->{'server'}::$config->[0]->{$key}->{'remote_path'}");
+			push @threads, $t;
+                }
+                closedir(CONFDIR);
 
-for ($i =$[; $i <= $#logs; $i++)
-{
-        $t = threads->new(\&send_read_log, $logs[$i]);
-        push @threads, $t;
+        } else {
+		#TODO
+	}
 }
 
+#процесс будет ждать завершения всех потоков
 foreach(threads->list) {
         $_->join();
 }
