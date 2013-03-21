@@ -28,7 +28,7 @@ $logger->debug_message("StartUP process result: " . Main::start_proc());
 Daemon::Daemonize->daemonize;
 write_pidfile( $pidfile );
 
-foreach $key ( keys $config->[0] ) {
+foreach $key ( keys %{$config->[0]} ) {
 
 #проверяем что указано как целевой файл
 #может быть @file  - обычный текстовый файл 
